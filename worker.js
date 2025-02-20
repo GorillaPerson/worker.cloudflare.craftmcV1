@@ -19,14 +19,35 @@ async function handleRequest(request) {
     });
 
     if (!response.ok) {
-      return new Response(JSON.stringify({ error: "Failed to fetch data" }), { status: 500 });
+      return new Response(JSON.stringify({ error: "Failed to fetch data" }), {
+        status: 500,
+        headers: corsHeaders()
+      });
     }
 
     const data = await response.json();
     return new Response(JSON.stringify(data), {
-      headers: { "Content-Type": "application/json" }
+      headers: corsHeaders()
     });
   }
 
-  return new Response(JSON.stringify({ error: "requested path is invalid" }), { status: 404 });
+  // Handle CORS Preflight (OPTIONS request)
+  if (request.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders() });
+  }
+
+  return new Response(JSON.stringify({ error: "requested path is invalid" }), {
+    status: 404,
+    headers: corsHeaders()
+  });
+}
+
+// Function to return CORS headers
+function corsHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",  // Allow all origins (Change this to your frontend URL if needed)
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+  };
 }
